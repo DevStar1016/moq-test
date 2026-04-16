@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+button {
+	cursor: pointer;
+}
+
+body {
+	/* We're using Tailwind for the prose styles. */
+	@apply prose bg-neutral-950 text-white dark:prose-invert lg:prose-xl mx-auto;
+}

@@ -1,0 +1,15 @@
+[package]
+name = "moq-token-cli"
+description = "Media over QUIC - Token Generation and Validation"
+authors = ["Luke Curley"]
+repository = "https://github.com/moq-dev/moq"
+license = "MIT OR Apache-2.0"
+
+version = "0.5.19"
+edition = "2024"
+rust-version.workspace = true
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+moq-token = { workspace = true }

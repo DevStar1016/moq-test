@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en" class="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>MoQ Demo</title>
+		<link rel="stylesheet" href="index.css" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap"
+			rel="stylesheet"
+		/>
+
+		<style>
+			:root {
+				--bg: #080a0d;
+				--surface: #0e1117;
+				--border: #1e2530;
+				--border-glow: #2a9fff40;
+				--text: #dce8f5;
+				--muted: #4d6070;
+				--accent: #2a9fff;
+				--accent-dim: #1a5a99;
+				--danger: #e24b4a;
+				--success: #1d9e75;
+				--mono: "JetBrains Mono", monospace;
+				--sans: "Syne", sans-serif;
+			}
+
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+
+			hr {
+				border: none;
+				border-top: 1px solid var(--border);
+				margin: 2rem 0;
+			}
+
+			h3 {
+				font-family: var(--sans);
+				font-size: 11px;
+				font-weight: 700;
+				letter-spacing: 0.18em;
+				text-transform: uppercase;
+				color: var(--muted);
+				margin-bottom: 1rem;
+				display: flex;
+				align-items: center;
+				gap: 0.6rem;
+			}
+			h3::before {
+				content: "";
+				display: inline-block;
+				width: 3px;
+				height: 14px;
+				background: var(--accent);
+				border-radius: 2px;
+				box-shadow: 0 0 8px var(--accent);
+			}
+
+			#video-file {
+				display: none;
+			}
+
+			.upload-row {
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				margin-bottom: 0.75rem;
+				flex-wrap: wrap;
+			}
+
+			#upload-pick-btn {
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				height: 38px;
+				padding: 0 1.2rem;
+				background: transparent;
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				color: var(--muted);
+				font-family: var(--mono);
+				font-size: 12px;
+				font-weight: 500;
+				letter-spacing: 0.06em;
+				cursor: pointer;
+				transition:
+					border-color 0.2s,
+					color 0.2s,
+					background 0.2s;
+				max-width: 300px;
+			}
+			#upload-pick-btn:hover {
+				border-color: var(--accent-dim);
+				color: var(--text);
+				background: #ffffff06;
+			}
+			#upload-pick-btn.has-file {
+				border-color: var(--accent-dim);
+				color: var(--text);
+			}
+			#upload-pick-btn.uploading {
+				opacity: 0.45;
+				pointer-events: none;
+			}
+			#upload-pick-btn svg {
+				width: 14px;
+				height: 14px;
+				flex-shrink: 0;
+				opacity: 0.6;
+			}
+			#upload-pick-btn.has-file svg {
+				opacity: 1;
+			}
+			#pick-file-name {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				max-width: 200px;
+			}
+
+			#video-upload,
+			#video-publish {
+				display: none;
+				align-items: center;
+				gap: 6px;
+				height: 38px;
+				padding: 0 1.4rem;
+				background: transparent;
+				border: 1px solid var(--accent-dim);
+				border-radius: 4px;
+				color: var(--accent);
+				font-family: var(--mono);
+				font-size: 12px;
+				font-weight: 500;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+				cursor: pointer;
+				position: relative;
+				overflow: hidden;
+				transition:
+					color 0.25s,
+					border-color 0.25s,
+					box-shadow 0.25s;
+			}
+			#video-upload.visible,
+			#video-publish.visible {
+				display: inline-flex;
+			}
+			#video-upload::before,
+			#video-publish::before {
+				content: "";
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
+				transform: translateX(-110%);
+				opacity: 0.15;
+				transition: transform 0.45s ease;
+			}
+			#video-upload:hover,
+			#video-publish:hover {
+				border-color: var(--accent);
+				color: #fff;
+				box-shadow:
+					0 0 18px var(--border-glow),
+					inset 0 0 12px #2a9fff18;
+			}
+			#video-upload:hover::before,
+			#video-publish:hover::before {
+				transform: translateX(110%);
+			}
+			#video-upload:active,
+			#video-publish:active {
+				transform: scale(0.97);
+			}
+			#video-upload.uploading,
+			#video-publish.uploading {
+				opacity: 0.4;
+				pointer-events: none;
+			}
+			#video-upload svg,
+			#video-publish svg {
+				width: 13px;
+				height: 13px;
+			}
+
+			#video-publish {
+				border-color: #1d9e7540;
+				color: var(--success);
+			}
+			#video-publish::before {
+				background: linear-gradient(90deg, transparent 0%, var(--success) 50%, transparent 100%);
+			}
+			#video-publish:hover {
+				border-color: var(--success);
+				box-shadow:
+					0 0 18px #1d9e7540,
+					inset 0 0 12px #1d9e7518;
+			}
+
+			#video-upload-status {
+				font-family: var(--mono);
+				font-size: 11px;
+				letter-spacing: 0.06em;
+				color: var(--muted);
+				min-height: 18px;
+				margin-bottom: 1.25rem;
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+			}
+			#video-upload-status.success {
+				color: var(--success);
+			}
+			#video-upload-status.error {
+				color: var(--danger);
+			}
+
+			.table-wrap {
+				overflow-x: auto;
+				min-width: 730px;
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				background: var(--surface);
+				overflow: hidden;
+				display: inline-table;
+			}
+
+			#video-table {
+				width: 100%;
+				border-collapse: collapse;
+				font-family: var(--mono);
+				font-size: 12px;
+			}
+
+			#video-table thead {
+				border-bottom: 1px solid var(--border);
+			}
+			#video-table thead th {
+				padding: 0.6rem 1rem;
+				text-align: left;
+				font-family: var(--sans);
+				font-size: 10px;
+				font-weight: 700;
+				letter-spacing: 0.15em;
+				text-transform: uppercase;
+				color: var(--muted);
+				white-space: nowrap;
+				background: #0a0d12;
+			}
+
+			#video-table tbody tr {
+				border-bottom: 1px solid var(--border);
+				transition: background 0.12s;
+			}
+			#video-table tbody tr:last-child {
+				border-bottom: none;
+			}
+			#video-table tbody tr:hover {
+				background: #2a9fff08;
+			}
+
+			#video-table tbody td {
+				padding: 0.65rem 1rem;
+				color: var(--text);
+				vertical-align: middle;
+				white-space: nowrap;
+			}
+
+			#video-table tbody td.td-name {
+				color: #fff;
+				font-weight: 500;
+			}
+			#video-table tbody td.td-meta {
+				color: var(--muted);
+				font-size: 11px;
+			}
+			#video-table tbody td.td-path {
+				color: var(--accent);
+				font-size: 11px;
+				max-width: 220px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			.actions {
+				display: flex;
+				gap: 6px;
+				align-items: center;
+			}
+
+			.icon-btn {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 28px;
+				height: 28px;
+				border-radius: 5px;
+				border: 1px solid var(--border);
+				background: transparent;
+				color: var(--muted);
+				cursor: pointer;
+				transition:
+					background 0.15s,
+					border-color 0.15s,
+					color 0.15s;
+				flex-shrink: 0;
+			}
+			.icon-btn svg {
+				width: 13px;
+				height: 13px;
+			}
+
+			.icon-btn.play:hover {
+				border-color: var(--accent);
+				color: var(--accent);
+				background: #2a9fff14;
+			}
+			.icon-btn.copy:hover {
+				border-color: var(--success);
+				color: var(--success);
+				background: #1d9e7514;
+			}
+			.icon-btn.del:hover {
+				border-color: var(--danger);
+				color: var(--danger);
+				background: #e24b4a14;
+			}
+
+			.empty-row td {
+				text-align: center;
+				padding: 2rem 1rem;
+				color: var(--muted);
+				font-family: var(--mono);
+				font-size: 12px;
+				letter-spacing: 0.05em;
+			}
+
+			::-webkit-scrollbar {
+				width: 6px;
+				height: 6px;
+			}
+			::-webkit-scrollbar-track {
+				background: var(--bg);
+			}
+			::-webkit-scrollbar-thumb {
+				background: var(--border);
+				border-radius: 4px;
+			}
+			::-webkit-scrollbar-thumb:hover {
+				background: var(--accent-dim);
+			}
+		</style>
+	</head>
+
+	<body>
+		<moq-watch-support show="always"></moq-watch-support>
+
+		<moq-discover>
+			<moq-watch-ui>
+				<moq-watch id="watch" url="%VITE_RELAY_URL%" name="bbb" muted latency="real-time" reload>
+					<canvas style="width: 100%; height: auto"></canvas>
+				</moq-watch>
+			</moq-watch-ui>
+		</moq-discover>
+
+		<hr />
+
+		<h3>Uploaded videos</h3>
+
+		<input id="video-file" type="file" accept="video/*" />
+
+		<div class="upload-row">
+			<button id="upload-pick-btn">
+				<svg
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+					<polyline points="17 8 12 3 7 8" />
+					<line x1="12" y1="3" x2="12" y2="15" />
+				</svg>
+				<span id="pick-file-name">Choose video…</span>
+			</button>
+
+			<button id="video-upload">
+				<svg
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2.2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<polyline points="16 16 12 12 8 16" />
+					<line x1="12" y1="12" x2="12" y2="21" />
+					<path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+				</svg>
+				Upload
+			</button>
+
+			
+
+
+			
+		</div>
+
+		<div id="video-upload-status"></div>
+		<button id="video-publish">
+			
+			Publish
+		</button>
+		<div class="table-wrap">
+			<table id="video-table">
+				<thead>
+					<tr>
+						<th>Original</th>
+						<th>Output</th>
+						<th>Type</th>
+						<th>Uploaded</th>
+						<th>FFmpeg</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody id="video-list">
+					<tr class="empty-row">
+						<td colspan="6">No videos uploaded yet.</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<script type="module" src="index.ts"></script>
+	</body>
+</html>
