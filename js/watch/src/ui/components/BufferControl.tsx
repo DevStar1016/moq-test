@@ -55,8 +55,9 @@ function drawRanges(
 		const x = (visibleStart / max) * width;
 		const w = Math.max(2, ((visibleEnd - visibleStart) / max) * width);
 
-		ctx.globalAlpha = 0.85;
-		ctx.fillStyle = isBuffering ? "#f87171" : i > 0 ? "#facc15" : "#4ade80";
+		ctx.globalAlpha = 0.92;
+		// High contrast on dark UIs: primary / secondary ranges + stall (was easy to lose against #0a0d12 rails)
+		ctx.fillStyle = isBuffering ? "#fb7185" : i > 0 ? "#fbbf24" : "#2dd4bf";
 
 		if (typeof ctx.roundRect === "function") {
 			ctx.beginPath();

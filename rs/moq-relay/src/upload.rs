@@ -107,7 +107,7 @@ fn monorepo_root() -> Result<PathBuf, ApiError> {
 }
 
 pub(crate) async fn publish_concat(AxumPath(channel): AxumPath<String>) -> Result<impl IntoResponse, ApiError> {
-	let channel = channel.trim().to_string();
+	let channel = channel.trim();
 	if channel.is_empty() {
 		return Err(ApiError::bad_request("missing channel name"));
 	}
@@ -127,34 +127,24 @@ pub(crate) async fn publish_concat(AxumPath(channel): AxumPath<String>) -> Resul
 		return Err(ApiError::bad_request("list.txt is empty"));
 	}
 
-	// `just pub cmaf-concat` is typically a long-running publisher; awaiting `.output()`
-	// would block the HTTP response until the process exits (often never), which leaves
-	// the web UI publish button disabled waiting on `fetch`.
-	let mut child = Command::new("just")
-		.current_dir(&demo_dir)
-		.args(["pub", "cmaf-concat", "media/list.txt", channel.as_str()])
-		.spawn()
-		.map_err(|err| {
-			tracing::warn!(%err, "failed to spawn publish command");
-			ApiError::internal("failed to start publish command")
-		})?;
+	let out = Command::new("just")
+		.current_dir(demo_dir)
+		.args(["pub", "cmaf-concat", "media/list.txt", channel])
+		.output()
+		.await
+		.map_err(|_| ApiError::internal("failed to start publish command"))?;
 
-	let channel_log = channel.clone();
-	tokio::spawn(async move {
-		match child.wait().await {
-			Ok(status) if status.success() => {
-				tracing::info!(channel = %channel_log, ?status, "publish command exited");
-			}
-			Ok(status) => {
-				tracing::warn!(channel = %channel_log, ?status, "publish command exited with failure");
-			}
-			Err(err) => {
-				tracing::warn!(channel = %channel_log, %err, "publish command wait error");
-			}
-		}
-	});
+	if !out.status.success() {
+		tracing::warn!(
+			code = ?out.status.code(),
+			stdout = %String::from_utf8_lossy(&out.stdout),
+			stderr = %String::from_utf8_lossy(&out.stderr),
+			"publish command failed"
+		);
+		return Err(ApiError::internal("publish command failed"));
+	}
 
-	Ok((StatusCode::ACCEPTED, Json(PublishBody { channel })))
+	Ok((StatusCode::OK, Json(PublishBody { channel: channel.to_string() })))
 }
 
 pub(crate) async fn init_db(pool: &sqlx::SqlitePool) -> Result<(), anyhow::Error> {
